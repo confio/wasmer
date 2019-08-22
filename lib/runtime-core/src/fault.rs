@@ -10,7 +10,7 @@ pub mod raw {
 }
 
 use crate::codegen::{BreakpointInfo, BreakpointMap};
-use crate::state::x64::{build_instance_image, read_stack, X64Register, GPR, XMM};
+use crate::state::x64::{build_instance_image, read_stack, ArchRegister, GPR, XMM};
 use crate::state::CodeVersion;
 use crate::vm;
 use libc::{mmap, mprotect, siginfo_t, MAP_ANON, MAP_PRIVATE, PROT_NONE, PROT_READ, PROT_WRITE};
@@ -267,7 +267,7 @@ extern "C" fn signal_trap_handler(
             }
 
             let ctx: &mut vm::Ctx = &mut **CURRENT_CTX.with(|x| x.get());
-            let rsp = fault.known_registers[X64Register::GPR(GPR::RSP).to_index().0].unwrap();
+            let rsp = fault.known_registers[ArchRegister::GPR(GPR::RSP).to_index().0].unwrap();
 
             let es_image = CURRENT_CODE_VERSIONS.with(|versions| {
                 let versions = versions.borrow();
@@ -382,32 +382,32 @@ pub unsafe fn get_fault_info(siginfo: *const c_void, ucontext: *const c_void) ->
     let fpregs = &*(*ucontext).uc_mcontext.fpregs;
 
     let mut known_registers: [Option<u64>; 24] = [None; 24];
-    known_registers[X64Register::GPR(GPR::R15).to_index().0] = Some(gregs[REG_R15 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R14).to_index().0] = Some(gregs[REG_R14 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R13).to_index().0] = Some(gregs[REG_R13 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R12).to_index().0] = Some(gregs[REG_R12 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R11).to_index().0] = Some(gregs[REG_R11 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R10).to_index().0] = Some(gregs[REG_R10 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R9).to_index().0] = Some(gregs[REG_R9 as usize] as _);
-    known_registers[X64Register::GPR(GPR::R8).to_index().0] = Some(gregs[REG_R8 as usize] as _);
-    known_registers[X64Register::GPR(GPR::RSI).to_index().0] = Some(gregs[REG_RSI as usize] as _);
-    known_registers[X64Register::GPR(GPR::RDI).to_index().0] = Some(gregs[REG_RDI as usize] as _);
-    known_registers[X64Register::GPR(GPR::RDX).to_index().0] = Some(gregs[REG_RDX as usize] as _);
-    known_registers[X64Register::GPR(GPR::RCX).to_index().0] = Some(gregs[REG_RCX as usize] as _);
-    known_registers[X64Register::GPR(GPR::RBX).to_index().0] = Some(gregs[REG_RBX as usize] as _);
-    known_registers[X64Register::GPR(GPR::RAX).to_index().0] = Some(gregs[REG_RAX as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R15).to_index().0] = Some(gregs[REG_R15 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R14).to_index().0] = Some(gregs[REG_R14 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R13).to_index().0] = Some(gregs[REG_R13 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R12).to_index().0] = Some(gregs[REG_R12 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R11).to_index().0] = Some(gregs[REG_R11 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R10).to_index().0] = Some(gregs[REG_R10 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R9).to_index().0] = Some(gregs[REG_R9 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::R8).to_index().0] = Some(gregs[REG_R8 as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RSI).to_index().0] = Some(gregs[REG_RSI as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RDI).to_index().0] = Some(gregs[REG_RDI as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RDX).to_index().0] = Some(gregs[REG_RDX as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RCX).to_index().0] = Some(gregs[REG_RCX as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RBX).to_index().0] = Some(gregs[REG_RBX as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RAX).to_index().0] = Some(gregs[REG_RAX as usize] as _);
 
-    known_registers[X64Register::GPR(GPR::RBP).to_index().0] = Some(gregs[REG_RBP as usize] as _);
-    known_registers[X64Register::GPR(GPR::RSP).to_index().0] = Some(gregs[REG_RSP as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RBP).to_index().0] = Some(gregs[REG_RBP as usize] as _);
+    known_registers[ArchRegister::GPR(GPR::RSP).to_index().0] = Some(gregs[REG_RSP as usize] as _);
 
-    known_registers[X64Register::XMM(XMM::XMM0).to_index().0] = Some(read_xmm(&fpregs._xmm[0]));
-    known_registers[X64Register::XMM(XMM::XMM1).to_index().0] = Some(read_xmm(&fpregs._xmm[1]));
-    known_registers[X64Register::XMM(XMM::XMM2).to_index().0] = Some(read_xmm(&fpregs._xmm[2]));
-    known_registers[X64Register::XMM(XMM::XMM3).to_index().0] = Some(read_xmm(&fpregs._xmm[3]));
-    known_registers[X64Register::XMM(XMM::XMM4).to_index().0] = Some(read_xmm(&fpregs._xmm[4]));
-    known_registers[X64Register::XMM(XMM::XMM5).to_index().0] = Some(read_xmm(&fpregs._xmm[5]));
-    known_registers[X64Register::XMM(XMM::XMM6).to_index().0] = Some(read_xmm(&fpregs._xmm[6]));
-    known_registers[X64Register::XMM(XMM::XMM7).to_index().0] = Some(read_xmm(&fpregs._xmm[7]));
+    known_registers[ArchRegister::XMM(XMM::XMM0).to_index().0] = Some(read_xmm(&fpregs._xmm[0]));
+    known_registers[ArchRegister::XMM(XMM::XMM1).to_index().0] = Some(read_xmm(&fpregs._xmm[1]));
+    known_registers[ArchRegister::XMM(XMM::XMM2).to_index().0] = Some(read_xmm(&fpregs._xmm[2]));
+    known_registers[ArchRegister::XMM(XMM::XMM3).to_index().0] = Some(read_xmm(&fpregs._xmm[3]));
+    known_registers[ArchRegister::XMM(XMM::XMM4).to_index().0] = Some(read_xmm(&fpregs._xmm[4]));
+    known_registers[ArchRegister::XMM(XMM::XMM5).to_index().0] = Some(read_xmm(&fpregs._xmm[5]));
+    known_registers[ArchRegister::XMM(XMM::XMM6).to_index().0] = Some(read_xmm(&fpregs._xmm[6]));
+    known_registers[ArchRegister::XMM(XMM::XMM7).to_index().0] = Some(read_xmm(&fpregs._xmm[7]));
 
     FaultInfo {
         faulting_addr: si_addr as usize as _,
@@ -481,32 +481,32 @@ pub unsafe fn get_fault_info(siginfo: *const c_void, ucontext: *const c_void) ->
 
     let mut known_registers: [Option<u64>; 24] = [None; 24];
 
-    known_registers[X64Register::GPR(GPR::R15).to_index().0] = Some(ss.r15);
-    known_registers[X64Register::GPR(GPR::R14).to_index().0] = Some(ss.r14);
-    known_registers[X64Register::GPR(GPR::R13).to_index().0] = Some(ss.r13);
-    known_registers[X64Register::GPR(GPR::R12).to_index().0] = Some(ss.r12);
-    known_registers[X64Register::GPR(GPR::R11).to_index().0] = Some(ss.r11);
-    known_registers[X64Register::GPR(GPR::R10).to_index().0] = Some(ss.r10);
-    known_registers[X64Register::GPR(GPR::R9).to_index().0] = Some(ss.r9);
-    known_registers[X64Register::GPR(GPR::R8).to_index().0] = Some(ss.r8);
-    known_registers[X64Register::GPR(GPR::RSI).to_index().0] = Some(ss.rsi);
-    known_registers[X64Register::GPR(GPR::RDI).to_index().0] = Some(ss.rdi);
-    known_registers[X64Register::GPR(GPR::RDX).to_index().0] = Some(ss.rdx);
-    known_registers[X64Register::GPR(GPR::RCX).to_index().0] = Some(ss.rcx);
-    known_registers[X64Register::GPR(GPR::RBX).to_index().0] = Some(ss.rbx);
-    known_registers[X64Register::GPR(GPR::RAX).to_index().0] = Some(ss.rax);
+    known_registers[ArchRegister::GPR(GPR::R15).to_index().0] = Some(ss.r15);
+    known_registers[ArchRegister::GPR(GPR::R14).to_index().0] = Some(ss.r14);
+    known_registers[ArchRegister::GPR(GPR::R13).to_index().0] = Some(ss.r13);
+    known_registers[ArchRegister::GPR(GPR::R12).to_index().0] = Some(ss.r12);
+    known_registers[ArchRegister::GPR(GPR::R11).to_index().0] = Some(ss.r11);
+    known_registers[ArchRegister::GPR(GPR::R10).to_index().0] = Some(ss.r10);
+    known_registers[ArchRegister::GPR(GPR::R9).to_index().0] = Some(ss.r9);
+    known_registers[ArchRegister::GPR(GPR::R8).to_index().0] = Some(ss.r8);
+    known_registers[ArchRegister::GPR(GPR::RSI).to_index().0] = Some(ss.rsi);
+    known_registers[ArchRegister::GPR(GPR::RDI).to_index().0] = Some(ss.rdi);
+    known_registers[ArchRegister::GPR(GPR::RDX).to_index().0] = Some(ss.rdx);
+    known_registers[ArchRegister::GPR(GPR::RCX).to_index().0] = Some(ss.rcx);
+    known_registers[ArchRegister::GPR(GPR::RBX).to_index().0] = Some(ss.rbx);
+    known_registers[ArchRegister::GPR(GPR::RAX).to_index().0] = Some(ss.rax);
 
-    known_registers[X64Register::GPR(GPR::RBP).to_index().0] = Some(ss.rbp);
-    known_registers[X64Register::GPR(GPR::RSP).to_index().0] = Some(ss.rsp);
+    known_registers[ArchRegister::GPR(GPR::RBP).to_index().0] = Some(ss.rbp);
+    known_registers[ArchRegister::GPR(GPR::RSP).to_index().0] = Some(ss.rsp);
 
-    known_registers[X64Register::XMM(XMM::XMM0).to_index().0] = Some(fs.xmm[0][0]);
-    known_registers[X64Register::XMM(XMM::XMM1).to_index().0] = Some(fs.xmm[1][0]);
-    known_registers[X64Register::XMM(XMM::XMM2).to_index().0] = Some(fs.xmm[2][0]);
-    known_registers[X64Register::XMM(XMM::XMM3).to_index().0] = Some(fs.xmm[3][0]);
-    known_registers[X64Register::XMM(XMM::XMM4).to_index().0] = Some(fs.xmm[4][0]);
-    known_registers[X64Register::XMM(XMM::XMM5).to_index().0] = Some(fs.xmm[5][0]);
-    known_registers[X64Register::XMM(XMM::XMM6).to_index().0] = Some(fs.xmm[6][0]);
-    known_registers[X64Register::XMM(XMM::XMM7).to_index().0] = Some(fs.xmm[7][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM0).to_index().0] = Some(fs.xmm[0][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM1).to_index().0] = Some(fs.xmm[1][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM2).to_index().0] = Some(fs.xmm[2][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM3).to_index().0] = Some(fs.xmm[3][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM4).to_index().0] = Some(fs.xmm[4][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM5).to_index().0] = Some(fs.xmm[5][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM6).to_index().0] = Some(fs.xmm[6][0]);
+    known_registers[ArchRegister::XMM(XMM::XMM7).to_index().0] = Some(fs.xmm[7][0]);
 
     FaultInfo {
         faulting_addr: si_addr,

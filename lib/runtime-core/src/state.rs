@@ -398,6 +398,36 @@ impl InstanceImage {
     }
 }
 
+#[cfg(all(unix, target_arch = "aarch64"))]
+pub mod aarch64 {
+    #[repr(u8)]
+    #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+    pub struct GPR(u8); // R0, R1... R30
+
+    #[repr(u8)]
+    #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+    pub struct XMM(u8); // 0, 1... 31
+
+    #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+    pub enum ArchRegister {
+        GPR(GPR),
+        XMM(XMM),
+    }
+
+    impl ArchRegister {
+        pub fn to_index(&self) -> RegisterIndex {
+            match *self {
+                ArchRegister::GPR(x) => RegisterIndex(x as usize),
+                ArchRegister::XMM(x) => RegisterIndex(x as usize + 31),
+            }
+        }
+
+        pub fn from_dwarf_regnum(x: u16) -> Option<ArchRegister> {
+            unimplemented!();
+        }
+    }
+}
+
 #[cfg(all(unix, target_arch = "x86_64"))]
 pub mod x64 {
     use super::*;
@@ -636,81 +666,93 @@ pub mod x64 {
         }
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R15).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R15).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R14).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R14).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R13).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R13).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R12).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R12).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R11).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R11).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R10).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::R10).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R9).to_index().0].unwrap_or(0);
+        stack[stack_offset] = known_registers[ArchRegister::GPR(GPR::R9).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::R8).to_index().0].unwrap_or(0);
+        stack[stack_offset] = known_registers[ArchRegister::GPR(GPR::R8).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RSI).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RSI).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RDI).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RDI).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RDX).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RDX).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RCX).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RCX).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RBX).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RBX).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
-        stack[stack_offset] = known_registers[X64Register::GPR(GPR::RAX).to_index().0].unwrap_or(0);
+        stack[stack_offset] =
+            known_registers[ArchRegister::GPR(GPR::RAX).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] = stack.as_ptr().offset(last_stack_offset as isize) as usize as u64; // rbp
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM7).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM7).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM6).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM6).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM5).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM5).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM4).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM4).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM3).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM3).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM2).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM2).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM1).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM1).to_index().0].unwrap_or(0);
 
         stack_offset -= 1;
         stack[stack_offset] =
-            known_registers[X64Register::XMM(XMM::XMM0).to_index().0].unwrap_or(0);
+            known_registers[ArchRegister::XMM(XMM::XMM0).to_index().0].unwrap_or(0);
 
         if let Some(ref memory) = image.memory {
             assert!(vmctx.internal.memory_bound <= memory.len());
@@ -837,15 +879,15 @@ pub mod x64 {
                 // Are we unwinding through an optimized/baseline boundary?
                 if is_baseline && !was_baseline {
                     let callee_saved = &*get_boundary_register_preservation();
-                    known_registers[X64Register::GPR(GPR::R15).to_index().0] =
+                    known_registers[ArchRegister::GPR(GPR::R15).to_index().0] =
                         Some(callee_saved.r15);
-                    known_registers[X64Register::GPR(GPR::R14).to_index().0] =
+                    known_registers[ArchRegister::GPR(GPR::R14).to_index().0] =
                         Some(callee_saved.r14);
-                    known_registers[X64Register::GPR(GPR::R13).to_index().0] =
+                    known_registers[ArchRegister::GPR(GPR::R13).to_index().0] =
                         Some(callee_saved.r13);
-                    known_registers[X64Register::GPR(GPR::R12).to_index().0] =
+                    known_registers[ArchRegister::GPR(GPR::R12).to_index().0] =
                         Some(callee_saved.r12);
-                    known_registers[X64Register::GPR(GPR::RBX).to_index().0] =
+                    known_registers[ArchRegister::GPR(GPR::RBX).to_index().0] =
                         Some(callee_saved.rbx);
                 }
 
@@ -1034,46 +1076,46 @@ pub mod x64 {
     }
 
     #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-    pub enum X64Register {
+    pub enum ArchRegister {
         GPR(GPR),
         XMM(XMM),
     }
 
-    impl X64Register {
+    impl ArchRegister {
         pub fn to_index(&self) -> RegisterIndex {
             match *self {
-                X64Register::GPR(x) => RegisterIndex(x as usize),
-                X64Register::XMM(x) => RegisterIndex(x as usize + 16),
+                ArchRegister::GPR(x) => RegisterIndex(x as usize),
+                ArchRegister::XMM(x) => RegisterIndex(x as usize + 16),
             }
         }
 
-        pub fn from_dwarf_regnum(x: u16) -> Option<X64Register> {
+        pub fn from_dwarf_regnum(x: u16) -> Option<ArchRegister> {
             Some(match x {
-                0 => X64Register::GPR(GPR::RAX),
-                1 => X64Register::GPR(GPR::RDX),
-                2 => X64Register::GPR(GPR::RCX),
-                3 => X64Register::GPR(GPR::RBX),
-                4 => X64Register::GPR(GPR::RSI),
-                5 => X64Register::GPR(GPR::RDI),
-                6 => X64Register::GPR(GPR::RBP),
-                7 => X64Register::GPR(GPR::RSP),
-                8 => X64Register::GPR(GPR::R8),
-                9 => X64Register::GPR(GPR::R9),
-                10 => X64Register::GPR(GPR::R10),
-                11 => X64Register::GPR(GPR::R11),
-                12 => X64Register::GPR(GPR::R12),
-                13 => X64Register::GPR(GPR::R13),
-                14 => X64Register::GPR(GPR::R14),
-                15 => X64Register::GPR(GPR::R15),
+                0 => ArchRegister::GPR(GPR::RAX),
+                1 => ArchRegister::GPR(GPR::RDX),
+                2 => ArchRegister::GPR(GPR::RCX),
+                3 => ArchRegister::GPR(GPR::RBX),
+                4 => ArchRegister::GPR(GPR::RSI),
+                5 => ArchRegister::GPR(GPR::RDI),
+                6 => ArchRegister::GPR(GPR::RBP),
+                7 => ArchRegister::GPR(GPR::RSP),
+                8 => ArchRegister::GPR(GPR::R8),
+                9 => ArchRegister::GPR(GPR::R9),
+                10 => ArchRegister::GPR(GPR::R10),
+                11 => ArchRegister::GPR(GPR::R11),
+                12 => ArchRegister::GPR(GPR::R12),
+                13 => ArchRegister::GPR(GPR::R13),
+                14 => ArchRegister::GPR(GPR::R14),
+                15 => ArchRegister::GPR(GPR::R15),
 
-                17 => X64Register::XMM(XMM::XMM0),
-                18 => X64Register::XMM(XMM::XMM1),
-                19 => X64Register::XMM(XMM::XMM2),
-                20 => X64Register::XMM(XMM::XMM3),
-                21 => X64Register::XMM(XMM::XMM4),
-                22 => X64Register::XMM(XMM::XMM5),
-                23 => X64Register::XMM(XMM::XMM6),
-                24 => X64Register::XMM(XMM::XMM7),
+                17 => ArchRegister::XMM(XMM::XMM0),
+                18 => ArchRegister::XMM(XMM::XMM1),
+                19 => ArchRegister::XMM(XMM::XMM2),
+                20 => ArchRegister::XMM(XMM::XMM3),
+                21 => ArchRegister::XMM(XMM::XMM4),
+                22 => ArchRegister::XMM(XMM::XMM5),
+                23 => ArchRegister::XMM(XMM::XMM6),
+                24 => ArchRegister::XMM(XMM::XMM7),
                 _ => return None,
             })
         }

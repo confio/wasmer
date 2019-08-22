@@ -1,7 +1,7 @@
 use crate::emitter_x64::*;
 use smallvec::SmallVec;
 use std::collections::HashSet;
-use wasmer_runtime_core::state::x64::X64Register;
+use wasmer_runtime_core::state::x64::ArchRegister;
 use wasmer_runtime_core::state::*;
 use wasmparser::Type as WpType;
 
@@ -157,10 +157,10 @@ impl Machine {
             };
             if let Location::GPR(x) = loc {
                 self.used_gprs.insert(x);
-                self.state.register_values[X64Register::GPR(x).to_index().0] = mv.clone();
+                self.state.register_values[ArchRegister::GPR(x).to_index().0] = mv.clone();
             } else if let Location::XMM(x) = loc {
                 self.used_xmms.insert(x);
-                self.state.register_values[X64Register::XMM(x).to_index().0] = mv.clone();
+                self.state.register_values[ArchRegister::XMM(x).to_index().0] = mv.clone();
             } else {
                 self.state.stack_values.push(mv.clone());
             }
@@ -191,12 +191,12 @@ impl Machine {
             match *loc {
                 Location::GPR(ref x) => {
                     assert_eq!(self.used_gprs.remove(x), true);
-                    self.state.register_values[X64Register::GPR(*x).to_index().0] =
+                    self.state.register_values[ArchRegister::GPR(*x).to_index().0] =
                         MachineValue::Undefined;
                 }
                 Location::XMM(ref x) => {
                     assert_eq!(self.used_xmms.remove(x), true);
-                    self.state.register_values[X64Register::XMM(*x).to_index().0] =
+                    self.state.register_values[ArchRegister::XMM(*x).to_index().0] =
                         MachineValue::Undefined;
                 }
                 Location::Memory(GPR::RBP, x) => {
@@ -230,12 +230,12 @@ impl Machine {
             match *loc {
                 Location::GPR(ref x) => {
                     assert_eq!(self.used_gprs.remove(x), true);
-                    self.state.register_values[X64Register::GPR(*x).to_index().0] =
+                    self.state.register_values[ArchRegister::GPR(*x).to_index().0] =
                         MachineValue::Undefined;
                 }
                 Location::XMM(ref x) => {
                     assert_eq!(self.used_xmms.remove(x), true);
-                    self.state.register_values[X64Register::XMM(*x).to_index().0] =
+                    self.state.register_values[ArchRegister::XMM(*x).to_index().0] =
                         MachineValue::Undefined;
                 }
                 _ => {}
@@ -362,7 +362,7 @@ impl Machine {
         for (i, loc) in locations.iter().enumerate() {
             match *loc {
                 Location::GPR(x) => {
-                    self.state.register_values[X64Register::GPR(x).to_index().0] =
+                    self.state.register_values[ArchRegister::GPR(x).to_index().0] =
                         MachineValue::WasmLocal(i);
                 }
                 Location::Memory(_, _) => {
@@ -397,7 +397,7 @@ impl Machine {
                 a.emit_push(Size::S64, *loc);
                 self.stack_offset.0 += 8;
                 self.state.stack_values.push(MachineValue::PreserveRegister(
-                    X64Register::GPR(x).to_index(),
+                    ArchRegister::GPR(x).to_index(),
                 ));
             }
         }
@@ -406,7 +406,7 @@ impl Machine {
         a.emit_push(Size::S64, Location::GPR(GPR::R15));
         self.stack_offset.0 += 8;
         self.state.stack_values.push(MachineValue::PreserveRegister(
-            X64Register::GPR(GPR::R15).to_index(),
+            ArchRegister::GPR(GPR::R15).to_index(),
         ));
 
         // Save the offset of static area.

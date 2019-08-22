@@ -23,7 +23,7 @@ use wasmer_runtime_core::{
     memory::MemoryType,
     module::{ModuleInfo, ModuleInner},
     state::{
-        x64::new_machine_state, x64::X64Register, FunctionStateMap, MachineState, MachineValue,
+        x64::new_machine_state, x64::ArchRegister, FunctionStateMap, MachineState, MachineValue,
         ModuleStateMap, OffsetInfo, SuspendOffset, WasmAbstractValue,
     },
     structures::{Map, TypedIndex},
@@ -1233,7 +1233,7 @@ impl X64FunctionCode {
         let used_gprs = m.get_used_gprs();
         for r in used_gprs.iter() {
             a.emit_push(Size::S64, Location::GPR(*r));
-            let content = m.state.register_values[X64Register::GPR(*r).to_index().0].clone();
+            let content = m.state.register_values[ArchRegister::GPR(*r).to_index().0].clone();
             assert!(content != MachineValue::Undefined);
             m.state.stack_values.push(content);
         }
@@ -1258,7 +1258,7 @@ impl X64FunctionCode {
                 );
             }
             for r in used_xmms.iter().rev() {
-                let content = m.state.register_values[X64Register::XMM(*r).to_index().0].clone();
+                let content = m.state.register_values[ArchRegister::XMM(*r).to_index().0].clone();
                 assert!(content != MachineValue::Undefined);
                 m.state.stack_values.push(content);
             }
@@ -1299,7 +1299,7 @@ impl X64FunctionCode {
                     match *param {
                         Location::GPR(x) => {
                             let content =
-                                m.state.register_values[X64Register::GPR(x).to_index().0].clone();
+                                m.state.register_values[ArchRegister::GPR(x).to_index().0].clone();
                             // FIXME: There might be some corner cases (release -> emit_call_sysv -> acquire?) that cause this assertion to fail.
                             // Hopefully nothing would be incorrect at runtime.
 
@@ -1308,7 +1308,7 @@ impl X64FunctionCode {
                         }
                         Location::XMM(x) => {
                             let content =
-                                m.state.register_values[X64Register::XMM(x).to_index().0].clone();
+                                m.state.register_values[ArchRegister::XMM(x).to_index().0].clone();
                             //assert!(content != MachineValue::Undefined);
                             m.state.stack_values.push(content);
                         }
@@ -1716,7 +1716,7 @@ impl FunctionCodeGenerator<CodegenError> for X64FunctionCode {
             .init_locals(a, self.num_locals, self.num_params);
 
         self.machine.state.register_values
-            [X64Register::GPR(Machine::get_vmctx_reg()).to_index().0] = MachineValue::Vmctx;
+            [ArchRegister::GPR(Machine::get_vmctx_reg()).to_index().0] = MachineValue::Vmctx;
 
         self.fsm = FunctionStateMap::new(
             new_machine_state(),

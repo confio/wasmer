@@ -94,7 +94,7 @@ impl StackmapEntry {
         msm: &mut wasmer_runtime_core::state::ModuleStateMap,
     ) {
         use wasmer_runtime_core::state::{
-            x64::{new_machine_state, X64Register, GPR},
+            x64::{new_machine_state, ArchRegister, GPR},
             FunctionStateMap, MachineStateDiff, MachineValue, OffsetInfo, RegisterIndex,
             SuspendOffset, WasmAbstractValue,
         };
@@ -196,7 +196,7 @@ impl StackmapEntry {
             };
             match loc.ty {
                 LocationType::Register => {
-                    let index = X64Register::from_dwarf_regnum(loc.dwarf_regnum)
+                    let index = ArchRegister::from_dwarf_regnum(loc.dwarf_regnum)
                         .expect("invalid regnum")
                         .to_index();
                     regs.push((index, mv));
@@ -226,8 +226,8 @@ impl StackmapEntry {
                     MachineValue::WasmLocal(_) => {
                         assert_eq!(loc.location_size, 8); // the pointer itself
                         assert!(
-                            X64Register::from_dwarf_regnum(loc.dwarf_regnum).unwrap()
-                                == X64Register::GPR(GPR::RBP)
+                            ArchRegister::from_dwarf_regnum(loc.dwarf_regnum).unwrap()
+                                == ArchRegister::GPR(GPR::RBP)
                         );
                         if loc.offset_or_small_constant >= 0 {
                             assert!(loc.offset_or_small_constant >= 16); // (saved_rbp, return_address)
@@ -249,8 +249,8 @@ impl StackmapEntry {
                 LocationType::Indirect => {
                     assert!(loc.offset_or_small_constant < 0);
                     assert!(
-                        X64Register::from_dwarf_regnum(loc.dwarf_regnum).unwrap()
-                            == X64Register::GPR(GPR::RBP)
+                        ArchRegister::from_dwarf_regnum(loc.dwarf_regnum).unwrap()
+                            == ArchRegister::GPR(GPR::RBP)
                     );
                     let stack_offset = ((-loc.offset_or_small_constant) / 4) as usize;
                     assert!(stack_offset > 0 && stack_offset <= machine_stack_half_layout.len());
