@@ -15,7 +15,7 @@ wasmer-singlepass-backend = { path = "../singlepass-backend", version = "0.6.0",
 
 [dev-dependencies]
 wabt = "0.9.1"
-criterion = "0.2"
+criterion = "0.3"
 
 [features]
 clif = []
