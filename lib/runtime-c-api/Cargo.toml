@@ -32,13 +32,19 @@ path = "../wasi"
 version = "0.10.2"
 optional = true
 
+[dependencies.wasmer-middleware-common]
+path = "../middleware-common"
+version = "0.10.2"
+optional = true
+
 [features]
-default = ["cranelift-backend", "wasi"]
+#default = ["cranelift-backend", "wasi"]
 debug = ["wasmer-runtime/debug"]
 cranelift-backend = ["wasmer-runtime/cranelift", "wasmer-runtime/default-backend-cranelift"]
 llvm-backend = ["wasmer-runtime/llvm", "wasmer-runtime/default-backend-llvm"]
 singlepass-backend = ["wasmer-runtime/singlepass", "wasmer-runtime/default-backend-singlepass"]
 wasi = ["wasmer-wasi"]
+metering = ["singlepass-backend", "wasmer-middleware-common"]
 
 [build-dependencies]
 cbindgen = "0.9"
