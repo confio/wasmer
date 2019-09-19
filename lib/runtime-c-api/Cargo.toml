@@ -44,12 +44,12 @@ optional = true
 
 [dependencies.wasmer-llvm-backend]
 path = "../llvm-backend"
-version = "0.6.0"
+version = "0.10.2"
 optional = true
 
 [dependencies.wasmer-clif-backend]
 path = "../clif-backend"
-version = "0.6.0"
+version = "0.10.2"
 optional = true
 
 [features]
