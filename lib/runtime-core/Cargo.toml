@@ -58,3 +58,7 @@ trace = ["debug"]
 "backend-singlepass" = []
 "backend-llvm" = []
 managed = []
+# allow us to force the target assembly
+"force-linux-x86-64" = []
+"force-osx-x86-64" = []
+"force-no-asm" = []

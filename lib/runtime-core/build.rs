@@ -3,6 +3,18 @@ use std::{env, fs, io::Write, path::PathBuf};
 
 const WASMER_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
+fn build_linux_asm() {
+    cc::Build::new()
+        .file("image-loading-linux-x86-64.s")
+        .compile("image-loading");
+}
+
+fn build_osx_asm() {
+    cc::Build::new()
+        .file("image-loading-macos-x86-64.s")
+        .compile("image-loading");
+}
+
 fn main() {
     let mut state = blake2bp::State::new();
     state.update(WASMER_VERSION.as_bytes());
@@ -29,14 +41,19 @@ fn main() {
         println!("cargo:rustc-cfg=nightly");
     }
 
-    if cfg!(all(target_os = "linux", target_arch = "x86_64")) {
-        cc::Build::new()
-            .file("image-loading-linux-x86-64.s")
-            .compile("image-loading");
-    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
-        cc::Build::new()
-            .file("image-loading-macos-x86-64.s")
-            .compile("image-loading");
-    } else {
+    // allow features to overrides (broken) target detection
+    let force_no_asm = cfg!(feature = "force-no-asm");
+    let force_linux = cfg!(feature = "force-linux-x86-64");
+    let force_osx = cfg!(feature = "force-osx-x86-64");
+    let detect_linux = cfg!(all(target_os = "linux", target_arch = "x86_64"));
+    let detect_osx = cfg!(all(target_os = "macos", target_arch = "x86_64"));
+
+    match (force_no_asm, force_linux, force_osx, detect_linux, detect_osx) {
+        (false, true, true, _, _) => panic!("Can't force two targets!"),
+        (false, true, false, _, _) => build_linux_asm(),
+        (false, false, true, _, _) => build_osx_asm(),
+        (false, false, false, true, false) => build_linux_asm(),
+        (false, false, false, false, true) => build_osx_asm(),
+        _ => {},
     }
 }
