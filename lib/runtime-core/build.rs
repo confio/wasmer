@@ -4,14 +4,16 @@ use std::{env, fs, io::Write, path::PathBuf};
 const WASMER_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn build_linux_asm() {
-    println!("***** build_linux_asm *******");
+    let target = env::var("TARGET").unwrap();
+    panic!(format!("***** build_linux_asm *******: {}", target));
     cc::Build::new()
         .file("image-loading-linux-x86-64.s")
         .compile("image-loading");
 }
 
 fn build_osx_asm() {
-    println!("***** build_osx_asm *******");
+    let target = env::var("TARGET").unwrap();
+    panic!(format!("***** build_osx_asm *******: {}", target));
     cc::Build::new()
         .file("image-loading-macos-x86-64.s")
         .compile("image-loading");
